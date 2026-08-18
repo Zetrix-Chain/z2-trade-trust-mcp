@@ -1,5 +1,5 @@
 {
-  "name": "z2-trade-trust-mcp",
+  "name": "zetrix-tradetrust-mcp",
   "version": "0.1.0",
   "description": "MCP server exposing TradeTrust operations on the Zetrix L2 as MCP tools (thin client over core-engine's REST API).",
   "private": true,
