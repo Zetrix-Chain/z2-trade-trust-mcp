@@ -1,0 +1,28 @@
+{
+  "id": "z2-trade-trust",
+  "name": "Z2 Trade Trust",
+  "description": "TradeTrust document issuance and eBL operations on Zetrix L2.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "required": ["callerId", "hmacSecret"],
+    "additionalProperties": false,
+    "properties": {
+      "network": {
+        "type": "string",
+        "enum": ["z2-testnet", "z2-mainnet"],
+        "title": "Network",
+        "description": "Resolves the core-engine base URL automatically. Ignored if baseUrl is set. Defaults to z2-testnet.",
+        "default": "z2-testnet"
+      },
+      "baseUrl": {
+        "type": "string",
+        "title": "core-engine base URL (optional -- overrides network if set)"
+      },
+      "callerId": { "type": "string", "title": "HMAC caller id" },
+      "hmacSecret": { "type": "string", "title": "HMAC secret" },
+      "allowWrites": { "type": "boolean", "title": "Allow write/workflow tools", "default": false }
+    }
+  },
+  "activation": { "onStartup": true }
+}
