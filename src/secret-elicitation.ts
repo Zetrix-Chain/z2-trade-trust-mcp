@@ -17,7 +17,7 @@ export function createElicitingSecretProvider(server: ElicitingServer, callerId:
     if (cached !== undefined) return cached;
 
     const result = await server.elicitInput({
-      message: `z2-trade-trust-mcp needs the HMAC secret issued for caller "${callerId}" to authenticate to core-engine. It is never logged or persisted -- only kept in memory for this process's lifetime.`,
+      message: `zetrix-tradetrust-mcp needs the HMAC secret issued for caller "${callerId}" to authenticate to core-engine. It is never logged or persisted -- only kept in memory for this process's lifetime.`,
       requestedSchema: {
         type: "object",
         properties: { secret: { type: "string", title: "HMAC secret" } },
