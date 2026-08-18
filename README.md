@@ -11,6 +11,8 @@ sign) are opt-in and need a caller identity.
 npm install
 ```
 
+Also published on npm as [`zetrix-tradetrust-mcp`](https://www.npmjs.com/package/zetrix-tradetrust-mcp).
+
 ## Configure
 
 ```bash
