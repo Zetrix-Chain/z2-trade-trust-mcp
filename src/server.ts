@@ -265,7 +265,7 @@ export function buildToolDescriptors(
 }
 
 export function buildServer(profile: Profile, allowWrites: boolean): McpServer {
-  const server = new McpServer({ name: "z2-trade-trust-mcp", version: "0.1.0" });
+  const server = new McpServer({ name: "zetrix-tradetrust-mcp", version: "0.1.0" });
   const getSecret =
     profile.hmacSecret === undefined ? createElicitingSecretProvider(server.server, profile.callerId) : undefined;
   const client = createCoreEngineClient(profile, { getSecret });

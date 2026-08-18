@@ -1,4 +1,4 @@
-# z2-trade-trust-mcp
+# zetrix-tradetrust-mcp
 
 **MCP (Model Context Protocol) server** exposing TradeTrust document/eBL operations on the Zetrix
 L2 as MCP tools — a thin, HMAC-signed client over `core-engine`'s REST API. Read tools (verify,
@@ -11,14 +11,14 @@ sign) are opt-in and need a caller identity.
 npm install
 ```
 
-Also published on npm as [`zetrix-tradetrust-mcp`](https://www.npmjs.com/package/zetrix-tradetrust-mcp).
+Published on npm: [`zetrix-tradetrust-mcp`](https://www.npmjs.com/package/zetrix-tradetrust-mcp).
 
 ## Configure
 
 ```bash
 export Z2TT_ENV="z2-testnet"       # or "z2-mainnet" -- shortcut for the known core-engine deployments
 # export Z2TT_BASE_URL="https://core-engine.example/api/z2-core-engine"  # custom deployment instead
-export Z2TT_CALLER_ID="z2-trade-trust-mcp"
+export Z2TT_CALLER_ID="zetrix-tradetrust-mcp"
 export Z2TT_HMAC_SECRET="…"        # issued out-of-band by whoever operates the deployment
 export Z2TT_ALLOW_WRITES="true"    # omit/false to register read-only tools
 ```
@@ -28,7 +28,7 @@ Or point `Z2TT_PROFILE` at a JSON file instead:
 ```jsonc
 {
   "baseUrl": "https://core-engine.example/api/z2-core-engine",
-  "callerId": "z2-trade-trust-mcp",
+  "callerId": "zetrix-tradetrust-mcp",
   "hmacSecret": "…"
 }
 ```
@@ -49,12 +49,12 @@ over stdin/stdout, not a human terminal session.
 ```jsonc
 {
   "mcpServers": {
-    "z2-trade-trust-mcp": {
+    "zetrix-tradetrust-mcp": {
       "command": "node",
       "args": ["/abs/path/dist/index.js"],
       "env": {
         "Z2TT_BASE_URL": "https://core-engine.example/api/z2-core-engine",
-        "Z2TT_CALLER_ID": "z2-trade-trust-mcp",
+        "Z2TT_CALLER_ID": "zetrix-tradetrust-mcp",
         "Z2TT_HMAC_SECRET": "…",
         "Z2TT_ALLOW_WRITES": "false"
       }
