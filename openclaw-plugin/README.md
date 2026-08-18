@@ -1,7 +1,7 @@
-# openclaw-plugin-z2-trade-trust
+# zetrix-tradetrust-plugin
 
-OpenClaw plugin for `z2-trade-trust-mcp` — registers a vendored, self-contained build of the
-z2-trade-trust-mcp server (TradeTrust document issuance and eBL operations on Zetrix L2) as an
+OpenClaw plugin for `zetrix-tradetrust-mcp` — registers a vendored, self-contained build of the
+zetrix-tradetrust-mcp server (TradeTrust document issuance and eBL operations on Zetrix L2) as an
 `mcp.servers` entry, with no separate `npm install`/build step for the end user.
 
 ## Install

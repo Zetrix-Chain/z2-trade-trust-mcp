@@ -1,6 +1,6 @@
 {
-  "id": "z2-trade-trust",
-  "name": "Z2 Trade Trust",
+  "id": "zetrix-tradetrust",
+  "name": "Zetrix TradeTrust",
   "description": "TradeTrust document issuance and eBL operations on Zetrix L2.",
   "version": "0.1.0",
   "configSchema": {

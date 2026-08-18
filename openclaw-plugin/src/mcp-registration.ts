@@ -16,8 +16,8 @@ export interface PluginConfig {
   allowWrites?: boolean;
 }
 
-export const SERVER_NAME = "z2-trade-trust";
-export const OWNERSHIP_MARKER = "_managedByZ2TradeTrustPlugin";
+export const SERVER_NAME = "zetrix-tradetrust";
+export const OWNERSHIP_MARKER = "_managedByZetrixTradeTrustPlugin";
 
 /** Explicit baseUrl always wins; otherwise resolved from network, defaulting to z2-testnet. */
 export function resolveBaseUrl(pluginConfig: PluginConfig): string {

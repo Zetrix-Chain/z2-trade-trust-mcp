@@ -11,9 +11,9 @@ await build({
   bundle: true,
   platform: "node",
   format: "esm",
-  outfile: join(pluginRoot, "dist-vendored", "z2-trade-trust-mcp-server.js"),
+  outfile: join(pluginRoot, "dist-vendored", "zetrix-tradetrust-mcp-server.js"),
 });
-console.log("Vendored MCP server -> dist-vendored/z2-trade-trust-mcp-server.js");
+console.log("Vendored MCP server -> dist-vendored/zetrix-tradetrust-mcp-server.js");
 
 await build({
   entryPoints: [join(pluginRoot, "src", "index.ts")],
