@@ -4,12 +4,12 @@ import { registerMcpServer, type PluginConfig } from "./mcp-registration.js";
 import { resolveVendoredServerPath } from "./paths.js";
 
 export default definePluginEntry({
-  id: "z2-trade-trust",
-  name: "Z2 Trade Trust",
+  id: "zetrix-tradetrust",
+  name: "Zetrix TradeTrust",
   description: "TradeTrust document issuance and eBL operations on Zetrix L2.",
   register(api) {
     if (!api.rootDir) {
-      throw new Error("z2-trade-trust plugin: api.rootDir is unset -- cannot locate the vendored MCP server bundle");
+      throw new Error("zetrix-tradetrust plugin: api.rootDir is unset -- cannot locate the vendored MCP server bundle");
     }
     const configPath = resolveConfigPath();
     const config = readConfig(configPath);
