@@ -13,6 +13,21 @@ npm install
 
 Published on npm: [`zetrix-tradetrust-mcp`](https://www.npmjs.com/package/zetrix-tradetrust-mcp).
 
+## Zero-config quick start
+
+`Z2TT_CALLER_ID`/`Z2TT_HMAC_SECRET` are optional. With neither set, the server still starts and
+registers `health_check`, `verify_credential`, `verify_ebl`, and `list_document_types` — the
+routes `core-engine` itself treats as unauthenticated, plus a local document-type lookup with no
+network call at all. `Z2TT_BASE_URL`/`Z2TT_ENV` default to the `z2-testnet` sandbox. This is
+enough to verify documents or check liveness with zero configuration:
+
+```bash
+npm run build
+node dist/index.js
+```
+
+Add credentials any time (below) to unlock the full read/write tool set.
+
 ## Configure
 
 ```bash
@@ -32,6 +47,16 @@ Or point `Z2TT_PROFILE` at a JSON file instead:
   "hmacSecret": "…"
 }
 ```
+
+## Preparing documents: `documentType`
+
+`prepare_credential`, `prepare_mint_ebl`, `issue_document`, and `mint_ebl` accept an optional
+`documentType` (e.g. `"certificateOfOrigin"`, `"billOfLading"`, `"commercialInvoice"`) that
+auto-fills the JSON-LD `@context` a document type needs for `core-engine`'s signing to succeed —
+call `list_document_types` first (no auth needed) to see every known type, its expected
+`credentialSubject.type`, and whether its shape is proven against `core-engine` or
+allowlisted-but-unconfirmed. Supplying `context` directly still works exactly as before;
+`documentType` is purely additive.
 
 ## Run
 
@@ -68,7 +93,7 @@ over stdin/stdout, not a human terminal session.
 If the client is [OpenClaw](https://openclaw.dev), skip the manual `mcpServers` wiring and install
 [`openclaw-plugin/`](openclaw-plugin) instead — `openclaw plugins install ./openclaw-plugin`
 self-registers this server and exposes the same config as plugin settings
-(`network`/`baseUrl`/`callerId`/`hmacSecret`/`allowWrites`).
+(`network`/`baseUrl`/`callerId`/`hmacSecret`/`allowWrites`, all optional).
 
 ## License
 

@@ -6,8 +6,9 @@ import type { Capability } from "./config/capabilities.js";
 import { createCoreEngineClient } from "./client/core-engine.js";
 import { createElicitingSecretProvider } from "./secret-elicitation.js";
 import type { Profile } from "./config/profile.js";
-import { registeredToolNames } from "./tools/registry.js";
+import { registeredToolNames, filterForCredentials } from "./tools/registry.js";
 import { healthCheck } from "./tools/utility.js";
+import { listDocumentTypes } from "./tools/document-types.js";
 import {
   getFinality,
   verifyCredential,
@@ -87,13 +88,22 @@ const EMPTY_SCHEMA = z.object({});
 export function buildToolDescriptors(
   client: CoreEngineClient,
   capabilities: Partial<Record<Capability, boolean>> | undefined,
-  allowWrites: boolean
+  allowWrites: boolean,
+  hasCredentials: boolean = true
 ): Record<string, ToolDescriptor> {
   const all: Record<string, ToolDescriptor> = {
     health_check: {
       description: "Liveness probe. No auth needed even by core-engine.",
       schema: EMPTY_SCHEMA,
       handler: () => healthCheck(client),
+    },
+    list_document_types: {
+      description:
+        "Lists known document types with their required JSON-LD context URL(s) and whether the " +
+        "shape is proven against core-engine. Call this before prepare_credential/prepare_mint_ebl " +
+        "and pass the key as documentType to auto-fill the correct context.",
+      schema: EMPTY_SCHEMA,
+      handler: () => Promise.resolve(listDocumentTypes()),
     },
     verify_credential: {
       description: "Full verification of a verifiable-document credential.",
@@ -260,16 +270,40 @@ export function buildToolDescriptors(
     },
   };
 
-  const names = registeredToolNames({ Z2TT_ALLOW_WRITES: allowWrites ? "true" : undefined });
+  const names = filterForCredentials(
+    registeredToolNames({ Z2TT_ALLOW_WRITES: allowWrites ? "true" : undefined }),
+    hasCredentials
+  );
   return Object.fromEntries(names.map((name) => [name, all[name]]));
 }
 
 export function buildServer(profile: Profile, allowWrites: boolean): McpServer {
   const server = new McpServer({ name: "zetrix-tradetrust-mcp", version: "0.1.0" });
+  const hasCredentials =
+    profile.callerId !== undefined && (profile.hmacSecret !== undefined || profile.allowSecretPrompt === true);
+
+  if (!hasCredentials) {
+    const missing: string[] = [];
+    if (profile.callerId === undefined) missing.push("Z2TT_CALLER_ID");
+    if (profile.hmacSecret === undefined && profile.allowSecretPrompt !== true) missing.push("Z2TT_HMAC_SECRET");
+    const missingList = missing.join("/");
+    console.error(
+      `[z2-trade-trust-mcp] no ${missingList} configured -- only health_check, ` +
+        `verify_credential, verify_ebl, list_document_types are available. Set ${missingList} (or _FILE) to enable the rest.`
+    );
+  }
+  if (profile.baseUrlDefaulted) {
+    console.error("[z2-trade-trust-mcp] no Z2TT_BASE_URL/Z2TT_ENV set -- defaulting to z2-testnet sandbox.");
+  }
+
+  // Safe: hasCredentials being true is only possible when profile.callerId !== undefined, per the
+  // formula above -- TypeScript can't see that correlation across the two separate expressions.
   const getSecret =
-    profile.hmacSecret === undefined ? createElicitingSecretProvider(server.server, profile.callerId) : undefined;
-  const client = createCoreEngineClient(profile, { getSecret });
-  const descriptors = buildToolDescriptors(client, profile.capabilities, allowWrites);
+    hasCredentials && profile.hmacSecret === undefined
+      ? createElicitingSecretProvider(server.server, profile.callerId as string)
+      : undefined;
+  const client = createCoreEngineClient(profile, { getSecret, authenticated: hasCredentials });
+  const descriptors = buildToolDescriptors(client, profile.capabilities, allowWrites, hasCredentials);
 
   for (const [name, { description, schema, handler }] of Object.entries(descriptors)) {
     server.registerTool(name, { description, inputSchema: schema }, async (args: unknown) => {

@@ -7,8 +7,14 @@ export const CORE_ENGINE_BASE_URLS = {
 
 export interface Profile {
   baseUrl: string;
-  callerId: string;
+  /** true when baseUrl came from the z2-testnet default (no Z2TT_BASE_URL/Z2TT_ENV set) rather
+   * than an explicit choice -- buildServer logs this so an operator who meant mainnet notices. */
+  baseUrlDefaulted?: boolean;
+  callerId?: string;
   hmacSecret?: string;
+  /** Mirrors Z2TT_ALLOW_SECRET_PROMPT. Tracked explicitly now that a missing hmacSecret no longer
+   * implies the prompt flag was set -- loadProfile no longer throws for a missing secret either way. */
+  allowSecretPrompt?: boolean;
   capabilities?: Partial<Record<Capability, boolean>>;
 }
 
@@ -17,14 +23,14 @@ export interface LoadProfileDeps {
   readFile: (path: string) => string;
 }
 
-function resolveBaseUrl(env: Record<string, string | undefined>): string | undefined {
-  if (env.Z2TT_BASE_URL) return env.Z2TT_BASE_URL;
-  if (!env.Z2TT_ENV) return undefined;
+function resolveBaseUrl(env: Record<string, string | undefined>): { baseUrl: string; defaulted: boolean } {
+  if (env.Z2TT_BASE_URL) return { baseUrl: env.Z2TT_BASE_URL, defaulted: false };
+  if (!env.Z2TT_ENV) return { baseUrl: CORE_ENGINE_BASE_URLS["z2-testnet"], defaulted: true };
   const known = CORE_ENGINE_BASE_URLS[env.Z2TT_ENV as keyof typeof CORE_ENGINE_BASE_URLS];
   if (!known) {
     throw new Error(`unknown Z2TT_ENV "${env.Z2TT_ENV}", expected one of: ${Object.keys(CORE_ENGINE_BASE_URLS).join(", ")}`);
   }
-  return known;
+  return { baseUrl: known, defaulted: false };
 }
 
 // The signed path is derived from baseUrl's own pathname (see core-engine.ts), so a trailing
@@ -48,27 +54,23 @@ function resolveHmacSecret(env: Record<string, string | undefined>, readFile: (p
 }
 
 export function loadProfile(deps: LoadProfileDeps): Profile {
+  const allowSecretPrompt = deps.env.Z2TT_ALLOW_SECRET_PROMPT === "true";
   const profilePath = deps.env.Z2TT_PROFILE;
   if (profilePath) {
     const profile = JSON.parse(deps.readFile(profilePath)) as Profile;
-    return { ...profile, baseUrl: normalizeBaseUrl(profile.baseUrl) };
+    return { ...profile, baseUrl: normalizeBaseUrl(profile.baseUrl), baseUrlDefaulted: false, allowSecretPrompt };
   }
 
-  const baseUrl = resolveBaseUrl(deps.env);
+  const { baseUrl, defaulted } = resolveBaseUrl(deps.env);
   const callerId = deps.env.Z2TT_CALLER_ID;
   const hmacSecret = resolveHmacSecret(deps.env, deps.readFile);
 
-  if (!baseUrl || !callerId) {
-    throw new Error("no profile source configured");
-  }
-  // Distinct from the check above: baseUrl/callerId are fine here, only the secret is missing --
-  // a shared "no profile source configured" message would point an operator at the wrong half of
-  // their config.
-  if (!hmacSecret && deps.env.Z2TT_ALLOW_SECRET_PROMPT !== "true") {
-    throw new Error(
-      "no hmac secret configured -- set Z2TT_HMAC_SECRET, Z2TT_HMAC_SECRET_FILE, or Z2TT_ALLOW_SECRET_PROMPT=true"
-    );
-  }
-
-  return { baseUrl: normalizeBaseUrl(baseUrl), callerId, hmacSecret, capabilities: undefined };
+  return {
+    baseUrl: normalizeBaseUrl(baseUrl),
+    baseUrlDefaulted: defaulted,
+    callerId,
+    hmacSecret,
+    allowSecretPrompt,
+    capabilities: undefined,
+  };
 }

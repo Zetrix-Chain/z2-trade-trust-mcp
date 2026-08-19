@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { CoreEngineClient } from "../client/types.js";
 import type { Capability } from "../config/capabilities.js";
+import { DOCUMENT_TYPE_KEYS, type DocumentTypeKey } from "../config/document-types.js";
 import { completeCredential, completeMintEbl, keyPairSchema, prepareCredential, prepareMintEbl, type DryRunResult } from "./write.js";
 
 export type WorkflowCapabilities = Partial<Record<Capability, boolean>>;
@@ -53,6 +54,7 @@ export const mintEblInputSchema = z.object({
   chainId: z.number().optional(),
   chain: z.string().optional(),
   context: z.array(z.string()).optional(),
+  documentType: z.enum(DOCUMENT_TYPE_KEYS as [DocumentTypeKey, ...DocumentTypeKey[]]).optional(),
   renderMethod: z.object({ id: z.string(), type: z.string(), templateName: z.string() }).optional(),
   qrCode: z.object({ uri: z.string(), type: z.string() }).optional(),
   expirationDate: z.string().optional(),
@@ -95,6 +97,7 @@ export const issueDocumentInputSchema = z.object({
   credentialSubject: z.record(z.string(), z.unknown()),
   type: z.array(z.string()).optional(),
   context: z.array(z.string()).optional(),
+  documentType: z.enum(DOCUMENT_TYPE_KEYS as [DocumentTypeKey, ...DocumentTypeKey[]]).optional(),
   validFrom: z.string().optional(),
   statusPurpose: z.enum(["revocation", "suspension"]).optional(),
   renderMethod: z.object({ id: z.string(), type: z.string(), templateName: z.string() }).optional(),

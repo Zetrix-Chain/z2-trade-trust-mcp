@@ -11,8 +11,11 @@ export type Network = keyof typeof NETWORK_BASE_URLS;
 export interface PluginConfig {
   network?: Network;
   baseUrl?: string;
-  callerId: string;
-  hmacSecret: string;
+  /** Optional -- omitting both callerId and hmacSecret starts the vendored server in its
+   * health_check/verify_credential/verify_ebl/list_document_types-only degraded mode
+   * (z2-trade-trust-mcp's loadProfile()) rather than blocking plugin installation. */
+  callerId?: string;
+  hmacSecret?: string;
   allowWrites?: boolean;
 }
 
@@ -32,8 +35,11 @@ export function buildServerEntry(pluginConfig: PluginConfig, vendoredServerPath:
     args: [vendoredServerPath],
     env: {
       Z2TT_BASE_URL: resolveBaseUrl(pluginConfig),
-      Z2TT_CALLER_ID: pluginConfig.callerId,
-      Z2TT_HMAC_SECRET: pluginConfig.hmacSecret,
+      // Omitted (not set to "" or "undefined") when absent -- the vendored server's loadProfile()
+      // treats a genuinely-unset Z2TT_CALLER_ID/Z2TT_HMAC_SECRET as "start in degraded mode",
+      // which is a different, deliberate outcome from an empty-string credential.
+      ...(pluginConfig.callerId !== undefined ? { Z2TT_CALLER_ID: pluginConfig.callerId } : {}),
+      ...(pluginConfig.hmacSecret !== undefined ? { Z2TT_HMAC_SECRET: pluginConfig.hmacSecret } : {}),
       Z2TT_ALLOW_WRITES: String(pluginConfig.allowWrites ?? false),
     },
   };
