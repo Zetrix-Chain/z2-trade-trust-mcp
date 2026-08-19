@@ -5,7 +5,6 @@
   "version": "0.2.0",
   "configSchema": {
     "type": "object",
-    "required": ["callerId", "hmacSecret"],
     "additionalProperties": false,
     "properties": {
       "network": {
@@ -19,8 +18,16 @@
         "type": "string",
         "title": "core-engine base URL (optional -- overrides network if set)"
       },
-      "callerId": { "type": "string", "title": "HMAC caller id" },
-      "hmacSecret": { "type": "string", "title": "HMAC secret" },
+      "callerId": {
+        "type": "string",
+        "title": "HMAC caller id (optional)",
+        "description": "Omit alongside hmacSecret to install with only health_check/verify_credential/verify_ebl/list_document_types -- no server-side account needed."
+      },
+      "hmacSecret": {
+        "type": "string",
+        "title": "HMAC secret (optional)",
+        "description": "Omit alongside callerId to install with only health_check/verify_credential/verify_ebl/list_document_types -- no server-side account needed."
+      },
       "allowWrites": { "type": "boolean", "title": "Allow write/workflow tools", "default": false }
     }
   },

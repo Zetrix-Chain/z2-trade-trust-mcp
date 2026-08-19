@@ -1,7 +1,6 @@
 /**
- * The interface every tool calls through. The concrete implementation
- * (src/client/core-engine.ts) is a generic HTTP+HMAC transport rather than a dependency on the
- * Node SDK.
+ * The interface every tool calls through -- a generic HTTP+HMAC transport
+ * (src/client/core-engine.ts is the concrete implementation).
  */
 export interface CoreEngineClient {
   get<T>(path: string, query?: Record<string, string>): Promise<T>;

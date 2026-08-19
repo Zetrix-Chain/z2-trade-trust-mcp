@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { CoreEngineClient } from "../client/types.js";
 import { assertCapabilityEnabled, type Capability } from "../config/capabilities.js";
+import { DOCUMENT_TYPE_KEYS, mergeDocumentTypeContext, type DocumentTypeKey } from "../config/document-types.js";
 
 export type ToolCapabilities = Partial<Record<Capability, boolean>>;
 
@@ -97,6 +98,7 @@ export const prepareCredentialInputSchema = z.object({
   credentialSubject: z.record(z.string(), z.unknown()),
   type: z.array(z.string()).optional(),
   context: z.array(z.string()).optional(),
+  documentType: z.enum(DOCUMENT_TYPE_KEYS as [DocumentTypeKey, ...DocumentTypeKey[]]).optional(),
   validFrom: z.string().optional(),
   statusPurpose: z.enum(["revocation", "suspension"]).optional(),
   renderMethod: renderMethodSchema.optional(),
@@ -111,7 +113,9 @@ export async function prepareCredential(
   input: PrepareCredentialInput,
   capabilities?: ToolCapabilities
 ): Promise<Record<string, unknown> | DryRunResult> {
-  const { dryRun, ...body } = prepareCredentialInputSchema.parse(input);
+  const { dryRun, documentType, context, ...rest } = prepareCredentialInputSchema.parse(input);
+  const mergedContext = mergeDocumentTypeContext(context, documentType);
+  const body = { ...rest, ...(mergedContext ? { context: mergedContext } : {}) };
   const path = "/credentials/prepare";
   assertCapabilityEnabled(path, capabilities);
 
@@ -344,6 +348,7 @@ export const prepareMintEblInputSchema = z.object({
   chainId: z.number().optional(),
   chain: z.string().optional(),
   context: z.array(z.string()).optional(),
+  documentType: z.enum(DOCUMENT_TYPE_KEYS as [DocumentTypeKey, ...DocumentTypeKey[]]).optional(),
   renderMethod: renderMethodSchema.optional(),
   qrCode: qrCodeSchema.optional(),
   expirationDate: z.string().optional(),
@@ -356,7 +361,9 @@ export async function prepareMintEbl(
   input: PrepareMintEblInput,
   capabilities?: ToolCapabilities
 ): Promise<Record<string, unknown> | DryRunResult> {
-  const { dryRun, ...body } = prepareMintEblInputSchema.parse(input);
+  const { dryRun, documentType, context, ...rest } = prepareMintEblInputSchema.parse(input);
+  const mergedContext = mergeDocumentTypeContext(context, documentType);
+  const body = { ...rest, ...(mergedContext ? { context: mergedContext } : {}) };
   const path = "/ebl/prepare-mint";
   assertCapabilityEnabled(path, capabilities);
 

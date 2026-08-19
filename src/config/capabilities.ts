@@ -36,8 +36,7 @@ export function capabilityForPath(path: string): Capability | undefined {
 /**
  * Fail fast, before any network call, when the profile explicitly marks a route's capability as
  * disabled. Does nothing for an always-open route, an unset capabilities map, or a capability the
- * map didn't mention -- an omitted/absent capabilities map registers the full tool set
- * optimistically rather than failing at startup.
+ * map didn't mention -- optimistic registration by default.
  */
 export function assertCapabilityEnabled(path: string, capabilities: Partial<Record<Capability, boolean>> | undefined): void {
   const capability = capabilityForPath(path);
