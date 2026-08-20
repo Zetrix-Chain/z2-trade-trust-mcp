@@ -6,21 +6,21 @@ import { generateP256Multikey } from "../crypto/multikey.js";
 
 export type ToolCapabilities = Partial<Record<Capability, boolean>>;
 
-export const createIssuerKeyInputSchema = z.discriminatedUnion("kind", [
-  z
-    .object({
-      kind: z.literal("vc"),
-      issuerDid: z.string().min(1).optional(),
-      keyId: z.string().optional(),
-    })
-    .strict(),
-  z
-    .object({
-      kind: z.literal("evm"),
-      issuerDid: z.string().min(1).optional(),
-    })
-    .strict(),
-]);
+// A flat z.object() rather than z.discriminatedUnion("kind", [...]) -- the MCP SDK's
+// registerTool() only recognizes plain ZodObject schemas (it looks for `.shape`, which neither a
+// discriminated union nor a ZodEffects from .superRefine()/.refine() exposes) when advertising a
+// tool's inputSchema to clients. A discriminated union still validates correctly at call time, but
+// the client never sees `kind` (or any field) in the advertised schema, so callers can't tell the
+// tool needs a `kind` argument at all. The "keyId not applicable to evm" cross-field check the
+// union used to give for free (via its separate `.strict()` object shapes) is done by hand in
+// createIssuerKey() below instead of via .superRefine(), to keep this a plain ZodObject.
+export const createIssuerKeyInputSchema = z
+  .object({
+    kind: z.enum(["vc", "evm"]),
+    issuerDid: z.string().min(1).optional(),
+    keyId: z.string().optional(),
+  })
+  .strict();
 export type CreateIssuerKeyInput = z.infer<typeof createIssuerKeyInputSchema>;
 
 export interface VcIssuerKeyResult {
@@ -42,6 +42,11 @@ export async function createIssuerKey(
   capabilities?: ToolCapabilities
 ): Promise<VcIssuerKeyResult | EvmIssuerKeyResult> {
   const parsed = createIssuerKeyInputSchema.parse(input);
+  if (parsed.kind === "evm" && parsed.keyId !== undefined) {
+    throw new z.ZodError([
+      { code: z.ZodIssueCode.custom, path: ["keyId"], message: 'keyId is not applicable to kind "evm"' },
+    ]);
+  }
 
   if (parsed.kind === "vc") {
     if (capabilities?.allowIssuerSigning === false) {
